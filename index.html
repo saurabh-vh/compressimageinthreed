@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="description" content="Interactive 3D walkthrough">
+
+  <link rel="icon" href="mainfolder/favicon.ico">
+
+  <meta property="og:image" content="mainfolder/thumbnail.jpg" />
+
+  <link href="mainfolder/webwalk/style.css" rel="stylesheet" type="text/css">
+
+  <style>
+    @font-face {
+      font-family: 'Open Sans';
+      font-style: normal;
+      font-weight: 400;
+      src: local('Open Sans'), local('OpenSans'),
+        url('mainfolder/webwalk/font/open-sans-v28-vietnamese_latin-ext_latin-regular.woff2') format('woff2'),
+        /* Chrome 26+, Opera 23+, Firefox 39+ */
+        url('mainfolder/webwalk/font/open-sans-v28-vietnamese_latin-ext_latin-regular.woff') format('woff');
+      /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+    }
+
+    /* Original font awesome font-family names have been replaced to not rely on
+       font-weight when determining actual symbol, as it didn't work well
+       when rendering using 2D canvas features, and also to avoid spaces in
+       the names. */
+
+    @font-face {
+      font-family: 'FontAwesomeBrands';
+      src: url("mainfolder/webwalk/font/fa-brands-400.woff2") format("woff2"),
+        url("mainfolder/webwalk/font/fa-brands-400.woff") format("woff");
+    }
+
+    @font-face {
+      font-family: 'FontAwesomeRegular';
+      src: url("mainfolder/webwalk/font/fa-regular-400.woff2") format("woff2"),
+        url("mainfolder/webwalk/font/fa-regular-400.woff") format("woff");
+    }
+
+    @font-face {
+      font-family: 'FontAwesomeSolid';
+      src: url("mainfolder/webwalk/font/fa-solid-900.woff2") format("woff2"),
+        url("mainfolder/webwalk/font/fa-solid-900.woff") format("woff");
+    }
+
+    #cover-image {
+      background-image: url("mainfolder/cover.jpg");
+    }
+
+    .ext-popup-close-button {
+      background-image: url("mainfolder/webwalk/img/close.svg");
+    }
+  </style>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+
+    #FPSHelp {
+      position: absolute;
+      left: 44%;
+      bottom: 1vw;
+      display: none;
+      font-size: 1vw;
+      width: 11vw;
+      text-align: center;
+      line-height: 1.5;
+      font-family: 'Inter';
+      color: #ffffff;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(1vw) saturate(2);
+      -webkit-backdrop-filter: blur(1vw) saturate(2);
+      padding: 1.5vw 0.75vw;
+      padding-top: 0;
+      border-radius: 50%;
+      font-weight: 500;
+      align-items: center;
+      justify-content: center;
+      align-content: center;
+      flex-direction: column;
+    }
+
+    #cover-image {
+      z-index: 1;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      background-position: center;
+      /* Fallback if background image failed to load.*/
+      background-color: #333;
+      transition: opacity 1s linear;
+    }
+
+    #background {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(1vw);
+      -webkit-backdrop-filter: blur(1vw);
+    }
+
+    #unitnounittype {
+      font-size: 1.5vw;
+      font-weight: 600;
+      text-shadow: 0px 0px 1vw rgb(255 255 255 / 58%);
+    }
+
+    @media(orientation:portrait) {
+      #unitnounittype {
+        font-size: 2.3vw;
+      }
+    }
+
+    #unitotherdetails {
+      font-size: 1vw;
+      font-weight: 500;
+      margin-top: 1vw;
+      text-align: center;
+      line-height: 1.75;
+      max-width: 60vw;
+    }
+
+    #view-list {
+      display: none;
+    }
+
+    #menu-bar {
+      display: none;
+    }
+
+    #info-bar {
+      display: none;
+    }
+
+    .info-message {
+      border-radius: 0.5em;
+      border: none;
+    }
+
+
+    #ext-meeting-camera-preview {
+      right: 1vw;
+      border-radius: 0.75vw;
+      bottom: 1vw;
+      left: auto;
+    }
+
+    #ext-meeting-camera-preview>video {
+      border-radius: 0.75vw;
+    }
+
+    .ext-popup-content {
+      border-radius: 0.75vw;
+      backdrop-filter: blur(1.5vw) saturate(2);
+    }
+
+    .ext-meeting-join-input {
+      border: 1px solid #fff;
+      border-radius: 0.25vw;
+    }
+
+    .ext-meeting-join-main-container {
+      border: 1px solid #fff;
+      border-radius: 0.25vw;
+    }
+
+    .ext-meeting-join-camera-preview-placeholder {
+      border-radius: 0.25vw;
+    }
+
+    #ext-meeting-join-button-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      align-content: center;
+    }
+
+    #ext-meeting-join-button,
+    #ext-meeting-test-button {
+      width: 100%;
+      border-radius: 0.25vw;
+    }
+
+    .ext-popup {
+      font-family: 'Inter';
+      font-weight: 600;
+    }
+
+    .ext-meeting-dialog-buttons>button {
+      font-family: 'Inter';
+    }
+
+    .message {
+      z-index: 300;
+      position: absolute;
+      width: auto;
+      top: 0.5em;
+      left: 0.5em;
+      padding: 0.5em;
+      background-color: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(1.5vw) saturate(2);
+      -webkit-backdrop-filter: blur(1.5vw) saturate(2);
+      color: white;
+      font-size: 0.75em;
+      text-align: center;
+    }
+
+    .absolute-center {
+      top: 50% !important;
+      left: 50% !important;
+    }
+
+    #bg {
+      position: fixed;
+      width: 100vw;
+      height: 100vh !important;
+      top: 0;
+      left: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2vw;
+      font-family: 'Inter';
+      font-weight: 600;
+      align-content: center;
+      background: rgba(0, 0, 0, 0.8);
+      -webkit-backdrop-filter: blur(1vw) saturate(2);
+      backdrop-filter: blur(1vw) saturate(2);
+      z-index: 10;
+      flex-direction: column;
+    }
+
+    #primary-progress {
+      /* z-index set to 200 for compatibility with customized indexes based on
+     webwalk < 180, because previously #primary-progress was a top-level
+     element. */
+      z-index: 200;
+      margin-top: 2.5vh;
+      margin-bottom: 2.5vh;
+      width: 40vw;
+      max-height: 20vh;
+      transition: opacity 0.5s linear;
+    }
+
+    #primary-progress>circle {
+      fill: none;
+    }
+
+    #primary-progress>circle:nth-child(1) {
+      stroke: rgba(0, 0, 0, 0.6);
+    }
+
+    #primary-progress-done {
+      stroke: #3c66b0;
+    }
+
+    .minimap-content-wrapper {
+      border-radius: 0.75vw;
+      cursor: pointer;
+    }
+
+    .minimap-container-default {
+      width: 100% !important;
+      height: 100% !important;
+      left: 0 !important;
+      bottom: 0 !important;
+    }
+
+    .minimap-wrapper-default {
+      top: 1vw;
+      left: 1vw;
+      background: rgba(0, 0, 0, 0.8);
+      -webkit-backdrop-filter: blur(1vw) saturate(2);
+      backdrop-filter: blur(1vw) saturate(2);
+      border-radius: 0.75vw;
+      transform: translate(0);
+      max-height: 50%;
+      max-width: 50%;
+    }
+
+    .minimap-button-minimize {
+      bottom: 0;
+      left: 0;
+      display: flex;
+    }
+
+    #map-close {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(1vw) saturate(2);
+      -webkit-backdrop-filter: blur(1vw) saturate(2);
+      z-index: 99;
+      font-size: 1.5rem;
+      width: 2.5rem;
+      font-weight: 900;
+      border-bottom-left-radius: 0.5vw;
+      height: 2.5rem;
+      display: flex;
+      cursor: pointer;
+      justify-content: center;
+      align-items: center;
+      align-content: center;
+    }
+
+    @media (max-width:479px) {
+      .ext-popup-content {
+        border-radius: 2vw !important;
+      }
+
+      #bg {
+        font-size: 3.5vw;
+      }
+
+    }
+
+    @media (orientation: portrait) {
+      .info-message {
+        top: 15vw;
+      }
+
+      .minimap-wrapper-default {
+        top: 15vw
+      }
+    }
+
+    @media (min-width: 480px) and (max-width: 1023px) and (orientation: landscape) {
+
+      .ext-popup-content {
+        border-radius: 1.5vw !important;
+      }
+
+      #bg {
+        font-size: 2vw;
+      }
+
+    }
+
+    @media (min-width: 480px) and (orientation: portrait) {
+      .ext-popup-content {
+        border-radius: 1.5vw !important;
+      }
+
+      #bg {
+        font-size: 3vw;
+      }
+
+    }
+  </style>
+  <title>3D scene</title>
+</head>
+
+<body>
+  <noscript>
+    <div class="message error-message absolute-center">
+      Explore this interactive 3D walkthrough on desktop and mobile
+      devices or with a Virtual Reality headset. To start the virtual
+      tour just click the play button. You don't need to install any
+      application, but you need to enable JavaScript in your browser.
+    </div>
+  </noscript>
+
+  <div id="cover-image">
+    <div id="background">
+      <div id="unitnounittype"></div>
+
+      <div id="loader"> <svg id="primary-progress" viewBox="0 0 315 4" style="display: none">
+          <svg id="primary-progress" viewBox="0 0 315 4" style="fill: none">
+            <line style="stroke:#fff;stroke-width:7;" x1="0" y1="1" x2="315" y2="1"></line>
+            <line id="primary-progress-done"
+              style="stroke:#dd1e42;stroke-width:7;stroke-dasharray: 315;stroke-dashoffset: 315;" x1="0" y1="1" x2="315"
+              y2="1"></line>
+          </svg>
+      </div>
+
+      <div id="unitotherdetails"></div>
+    </div>
+  </div>
+
+  <!-- tabindex allows to give the canvas keyboard focus with a
+         focus() function -->
+  <canvas id="walk-canvas" tabindex="-1">
+  </canvas>
+
+  <div id="info-message" class="message info-message" style="display: none">
+  </div>
+
+  <div id="error-message" class="message error-message absolute-center" style="display: none">
+  </div>
+
+  <!-- Error messages in old IEs can not be shown from JS, because old
+       IEs fail to parse new JS constructs -->
+  <!--[if lte IE 9]>
+      <div class="message error-message absolute-center">
+        Old versions of the Internet Explorer browser do not support
+        <a href="https://khronos.org/webgl/wiki/Getting_a_WebGL_Implementation"
+           target="_blank">
+          WebGL</a>.
+        <br/>
+        <a href="https://get.webgl.org/" target="_blank">
+          Find out how to get it.</a>
+      </div>
+  <![endif]-->
+
+  <div id="info-bar" class="ui-top ui-left">
+    <div id="info-bar-slide">
+      <a id="author-logo" class="info-item ui-panel" style="display: none" target="_blank">
+        <img>
+      </a><!-- NS = no spaces
+   -->
+      <div id="info-text" class="info-item ui-panel" style="display: none">
+        <div>
+          <div id="info-title"></div>
+        </div>
+        <div>
+          <a id="info-author" target="_blank"></a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="menu-bar" class="ui-bottom ui-right">
+    <div id="menu-bar-slide">
+      <div id="menu-bar-folder" class="menu-item ui-hoverable ui-panel" style="display: none">
+        <img src="mainfolder/webwalk/img/fold-horizontal.svg">
+      </div><!-- NS
+   -->
+      <div id="menu-bar-content">
+        <!-- <div id="btn">btn</div> -->
+        <div id="menu-buttons" style="display: none">
+          <div id="help-button" class="menu-button menu-item ui-hoverable ui-panel">
+            ?
+          </div><!-- NS
+       -->
+          <div id="minimap-button-toggle" class="menu-button menu-item ui-hoverable ui-panel" style="display:none">
+            <img src="mainfolder/webwalk/img/map.svg">
+          </div><!-- NS
+       -->
+          <div id="tour-button" class="menu-button menu-item ui-hoverable ui-panel" style="display: none">
+            <img src="mainfolder/webwalk/img/tour.svg">
+          </div><!-- NS
+       -->
+          <div id="vr-button" class="vr-specific menu-button menu-item ui-hoverable ui-panel" style="display: none">
+            VR
+          </div><!-- NS
+       -->
+          <div id="fullscreen-button" class="fullscreen-specific menu-button menu-item ui-hoverable
+                      ui-panel" style="display: none">
+            <img src="mainfolder/webwalk/img/fullscreen.svg">
+          </div>
+        </div><!-- NS
+     --><a id="engine-logo" class="menu-item ui-panel" style="display: none" href="https://www.shapespark.com"
+          target="_blank">
+          <div id="engine-logo-text" style="display: none"></div><!-- NS
+       --><img src="mainfolder/webwalk/img/shapespark-logo.svg">
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-list" class="ui-top ui-right" style="display: none">
+    <div id="view-list-slide">
+      <div id="view-list-items" class="ui-scrollbar">
+        <div class="view ui-hoverable ui-panel"></div>
+      </div>
+      <div id="view-list-folder" class="ui-folder-vertical ui-hoverable ui-panel">
+        <img src="mainfolder/webwalk/img/fold-vertical.svg">
+      </div>
+    </div>
+  </div>
+
+  <div id="minimap-container" class="minimap-container-default" style="display: none">
+    <div id="minimap-wrapper" class="minimap-wrapper-default">
+      <div id="map-close" onclick="mapClose()">X</div>
+      <div id="minimap-button-close" class="minimap-button minimap-button-close">
+        <img src="mainfolder/webwalk/img/close.svg">
+      </div>
+      <div id="minimap-button-minimize" class="minimap-button minimap-button-minimize">
+        <img src="mainfolder/webwalk/img/minimize.svg">
+      </div>
+      <div id="minimap-button-maximize" class="minimap-button minimap-button-maximize">
+        <img src="mainfolder/webwalk/img/maximize.svg">
+      </div>
+      <div id="minimap-content-wrapper" class="minimap-content-wrapper">
+        <div id="minimap-content" class="minimap-content"></div>
+      </div>
+      <div id="minimap-tabs" class="minimap-tabs-default" style="display: none"></div>
+    </div>
+  </div>
+
+  <img id="play-button" class="absolute-center" src="mainfolder/webwalk/img/play.svg" style="display: none">
+
+  <div id='interaction-prompt' class="ui-all-center ui-panel" style="display: none">
+    <div class='interaction-prompt-icon'>
+      <img class='interaction-prompt-icon-idle interaction-prompt-desktop' src="mainfolder/webwalk/img/pointer.svg" />
+      <img class='interaction-prompt-icon-pressed interaction-prompt-desktop'
+        src="mainfolder/webwalk/img/pointer-pressed.svg" />
+      <img class='interaction-prompt-icon-idle interaction-prompt-mobile' src="mainfolder/webwalk/img/hand.svg" />
+      <img class='interaction-prompt-icon-pressed interaction-prompt-mobile'
+        src="mainfolder/webwalk/img/hand-pressed.svg" />
+    </div>
+    <div data-strings="help.interactiveDesktop" class='interaction-prompt-indicator-text interaction-prompt-desktop'>
+    </div>
+    <div data-strings="help.interactiveMobile" class='interaction-prompt-indicator-text interaction-prompt-mobile'>
+    </div>
+  </div>
+
+  <!-- When the help is to be shown automatically during load (#help
+       hash), it is displayed above the primary progress indicator.
+       help-and-primary-progress is a wrapper for these two elements that
+       helps to lay them out consistently. -->
+  <div id="help-and-primary-progress" class="absolute-center">
+
+    <div id="desktop-help" class="help ui-panel" style="display: none">
+      <img id="close-desktop-help-button" class="close-help-button ui-close-hoverable"
+        src="mainfolder/webwalk/img/close.svg">
+      <div id="desktop-help-switch">
+        <div data-strings="help.basic" id="basic-desktop-help-option">
+        </div><!-- NS = no spaces
+     -->
+        <div data-strings="help.advanced" id="advanced-desktop-help-option">
+        </div>
+      </div>
+
+      <div id="desktop-help-content">
+
+        <div id="desktop-basic-help" class="help-columns" style="display: none">
+          <div class="help-column3">
+            <h1 data-strings="help.mouse"></h1>
+            <img src="mainfolder/webwalk/img/mouse-controls.svg">
+          </div><!-- NS
+       -->
+          <div class="help-column3-sep"></div><!-- NS
+       -->
+          <div class="help-column3">
+            <h1 data-strings="help.keyboard"></h1>
+            <img src="mainfolder/webwalk/img/keyboard-controls.svg">
+          </div><!-- NS
+       -->
+          <div class="help-column3-sep"></div><!-- NS
+       -->
+          <div class="help-column3">
+            <h1 data-strings="help.vrTeleport"></h1>
+            <img src="mainfolder/webwalk/img/vr-controls.svg">
+          </div>
+        </div>
+
+        <div id="advanced-desktop-help" style="display: none">
+          <h1 data-strings="help.mouse"></h1>
+          <div>
+            <div class="help-how" data-strings="help.holdLeftButton">
+            </div><!-- NS
+         -->
+            <div data-strings="help.lookAround" class="help-what"></div>
+          </div>
+          <div>
+            <div class="help-how" data-strings="help.clickLeftButton">
+            </div><!-- NS
+         -->
+            <div data-strings="help.walkToClickedPlace" class="viewer-specific help-what">
+            </div><!-- NS
+         -->
+            <div data-strings="help.selectMaterialLightObject" class="editor-specific help-what" style="display: none">
+            </div>
+          </div>
+          <div>
+            <div class="help-how" data-strings="help.scroll"></div><!-- NS
+         -->
+            <div data-strings="help.walkStraight" class="help-what"></div>
+          </div>
+          <h1 data-strings="help.keyboard"></h1>
+          <div>
+            <div class="help-how">
+              <div>
+                <div class="help-key-placeholder"></div><!-- NS
+             -->
+                <div class="help-key">&#8593;</div><!-- NS
+             -->
+                <div class="help-key-placeholder"></div>
+              </div>
+              <div>
+                <div class="help-key">&#8592;</div><!-- NS
+             -->
+                <div class="help-key">&#8595;</div><!-- NS
+             -->
+                <div class="help-key">&#8594;</div>
+              </div>
+            </div><!-- NS
+         -->
+            <div data-strings="help.walkStraightAndLookAround" class="help-what">
+            </div>
+          </div>
+          <div>
+            <div class="help-how">
+              <div>
+                <div class="help-key-placeholder"></div><!-- NS
+             -->
+                <div class="help-key">W</div><!-- NS
+             -->
+                <div class="help-key-placeholder"></div>
+              </div>
+              <div>
+                <div class="help-key">A</div><!-- NS
+             -->
+                <div class="help-key">S</div><!-- NS
+             -->
+                <div class="help-key">D</div>
+              </div>
+            </div><!-- NS
+         -->
+            <div data-strings="help.walkStraightAndSideways" class="help-what"></div>
+          </div>
+          <div>
+            <div class="help-how">
+              <div class="help-key">PgUp</div>
+              <div class="help-key">PgDn</div><!-- NS
+           -->
+              <div class="help-key-sep"></div><!-- NS
+           -->
+              <div class="help-key">E</div>
+              <div class="help-key">Q</div>
+            </div><!-- NS
+         -->
+            <div data-strings="help.changeHeight" class="help-what"></div>
+          </div>
+          <div>
+            <div class="help-how">
+              <div class="help-key">1</div>
+              &#8211;
+              <div class="help-key">9</div><!-- NS
+           -->
+              <div class="help-key-sep"></div><!-- NS
+           -->
+              <div class="help-key">[</div>
+              <div class="help-key">]</div>
+            </div><!-- NS
+       -->
+            <div data-strings="help.switchView" class="help-what"></div>
+          </div>
+          <div class="help-how">
+            <div class="help-key">P</div>
+          </div><!-- NS
+       -->
+          <div data-strings="help.screenshot" class="help-what"></div>
+          <div class="editor-specific help-how" style="display: none">
+            <div class="help-key">I</div>
+          </div><!-- NS
+       -->
+          <div data-strings="help.illuminationPreview" class="editor-specific help-what" style="display: none"></div>
+          <div class="help-how">
+            <div class="help-key">M</div>
+          </div><!-- NS
+       -->
+          <div data-strings="help.hideShowMenu" class="help-what"></div>
+          <div class="help-how">
+            <div class="help-key">L</div>
+          </div><!-- NS
+       -->
+          <div data-strings="help.hideShowMousePointer" class="help-what"></div>
+
+          <h1 data-strings="help.vrMode"></h1>
+          <div>
+            <div class="help-how">
+              <div data-strings="help.gazeAtFixedPlace"></div>
+              <div data-strings="help.or"></div>
+              <div data-strings="help.clickControllerButton">
+              </div>
+            </div><!-- NS
+         -->
+            <div data-strings="help.teleport" class="help-what"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="mobile-help" class="help ui-panel" style="display: none">
+      <img id="close-mobile-help-button" class="close-help-button ui-close-hoverable"
+        src="mainfolder/webwalk/img/close.svg">
+      <div class="help-columns">
+        <div class="help-column2">
+          <h1 data-strings="help.touch"></h1>
+          <img src="mainfolder/webwalk/img/touch-controls.svg">
+        </div><!-- NS
+     -->
+        <div class="help-column2-sep"></div><!-- NS
+     -->
+        <div class="navigation-help-column2">
+          <h1 data-strings="help.vrTeleport"></h1>
+          <img src="mainfolder/webwalk/img/vr-controls.svg">
+        </div>
+      </div>
+    </div>
+
+    <svg id="primary-progress" viewBox="-58 -58 116 116" style="display: none">
+      <circle cx="0" cy="0" r="50" stroke-width="14">
+      </circle>
+      <circle id="primary-progress-done" cx="0" cy="0" r="50" stroke-width="8" stroke-dasharray="315.159"
+        stroke-dashoffset="314.159" transform="rotate(-90)">
+      </circle>
+    </svg>
+
+  </div>
+
+  <div id="secondary-progress" style="display: none;">
+    <div id="secondary-progress-done" style="display: none;"></div>
+  </div>
+
+  <div id="ext-html-label" class="ext-popup ui-top ui-left ext-html-label-animated" style="display: none">
+    <div id="ext-html-label-content" class="ext-popup-content"></div><!-- NS
+ -->
+    <div id="ext-html-label-close" class="ext-popup-close-button-panel ui-close-hoverable">
+      <div class="ext-popup-close-button"></div>
+    </div>
+  </div>
+
+  <div id="ext-meeting-status" class="ext-popup ui-top ui-left" style="display: none">
+    <div id="ext-meeting-status-content" class="ext-popup-content">
+      <ul id="ext-meeting-who-list" class="ui-scrollbar ext-meeting-who-list">
+      </ul>
+      <div>
+        <button id="ext-meeting-mic-toggle" class="ext-meeting-button ext-meeting-button-highlight">
+          <span class="fa-microphone" style="display: none"></span>
+          <span class="fa-microphone-slash"></span>
+        </button>
+        <button id="ext-meeting-camera-toggle" class="ext-meeting-button ext-meeting-button-highlight">
+          <span class="fa-video" style="display: none"></span>
+          <span class="fa-video-slash"></span>
+        </button>
+        <button id="ext-meeting-pointer" class="ext-meeting-button">
+          <span class="fa-hand-pointer"></span>
+        </button>
+      </div>
+      <div id="ext-meeting-notes-preview" style="display: none">
+        <strong>Notes:</strong>
+        <ul id="ext-meeting-note-list" class="ext-meeting-list">
+        </ul>
+        <button id="ext-meeting-add-note" class="ext-meeting-button">
+          Add note
+        </button>
+      </div>
+      <div id="ext-meeting-status-footer">
+        <span id=ext-meeting-quality-indicator-container>
+        </span>
+        <span>
+          <button id="ext-meeting-leave" class="ext-meeting-button ext-meeting-button-highlight">
+            Leave meeting
+          </button>
+        </span>
+      </div>
+    </div>
+    <div id="ext-meeting-who-list-folder" class="ui-folder-vertical ui-hoverable ui-panel">
+      <img src="mainfolder/webwalk/img/fold-vertical.svg">
+    </div>
+  </div>
+  <div id="ext-meeting-camera-preview" style="display: none"></div>
+
+
+  <!--VirtualHomes CTC Starts here-->
+
+  <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+
+  <div id="FPSHelp">
+    <lottie-player src="https://assets2.lottiefiles.com/packages/lf20_zhmdu02e.json" background="transparent" speed="1"
+      style="width: 8vw;height: 8vw;margin-bottom: -1vw;margin-top: -1vw;" loop autoplay></lottie-player>Click on the
+    Floor to Move
+  </div>
+  <script>
+    let camurl = window.location.href;
+
+    window.location.hash = 'flipmouse';
+  </script>
+
+  <script type="module">
+    WALK.ASSETS_URL = 'mainfolder/';
+  </script>
+  <script src="mainfolder/webwalk/walk.min.js" type="text/javascript"></script>
+
+
+  <script type="text/javascript">
+    function mapClose() {
+      var Viewer = WALK.getViewer();
+      Viewer.disableMinimap();
+    }
+
+    window.onload = function () {
+      var yaw = 0;
+      //WALK.ASSETS_URL = 'mainfolder/';
+      //var config = new WALK.SceneLoadConfig();
+      //WALK.init(config);
+      var url;
+      var cameraMode;
+      const vrBtn = document.getElementById('vr-button')
+      var Viewer = WALK.getViewer();
+      Viewer.setAllMaterialsEditable();
+      Viewer.play();
+      WALK.FLIP_MOUSE = true;
+      WALK.CAMERA_LOOK_SPEED = 1.5 * Math.PI / 1500;
+      WALK.getViewer().onVrChange(function (isVrEnabled) {
+        parent.postMessage(JSON.stringify({ isVrEnabled }), "*")
+
+      })
+      var isAutoTourEnabled = false;
+
+      function changeTexture(url, material) {
+
+        var mat = Viewer.findMaterial(material);
+
+        //create image from image constructor;
+        if (mat) {
+          var img = new Image();
+          img.src = url;
+          if (material === "enviornment sphere") {
+            /*
+            ************************************************************************************
+            ************************GET THE MAX_TEXTURE_SIZE***********************************
+            ************************************************************************************
+            ************************************************************************************
+            */
+
+            const canvas = document.createElement('canvas');
+            canvas.width = 64;
+            canvas.height = 64;
+            canvas.style.border = 'none';
+
+            document.body.appendChild(canvas);
+
+            const gl = canvas.getContext('experimental-webgl');
+            let maxTextureSize = 0;
+
+            if (gl) {
+              maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+              console.log('Max Texture Size:', maxTextureSize);
+              localStorage.setItem('maxTextureSize', maxTextureSize);
+            } else {
+              console.error('WebGL not supported');
+            }
+
+            // Example: Access the stored value later
+            const storedMaxTextureSize = localStorage.getItem('maxTextureSize');
+          }
+            var compressedUrl;
+            const imageUrl = url;
+            const canvas = document.createElement('canvas');
+            const gl = canvas.getContext('experimental-webgl');
+
+            if (gl) {
+              const maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+              console.log('Max Texture Size:', maxTextureSize);
+
+              processImage(imageUrl, maxTextureSize);
+            } else {
+              console.error('WebGL not supported');
+            }
+          function processImage(imageUrl, maxTextureSize) {
+            const image = new Image();
+            image.crossOrigin = 'Anonymous';
+            image.src = imageUrl;
+            image.onload = () => {
+              const width = image.width;
+              const height = image.height;
+
+              // Calculate the new dimensions
+              let newWidth = getPowerOfTwo(width / 2, maxTextureSize);
+              let newHeight = newWidth / 2;
+              function isAndroid() {
+                return /Android/i.test(navigator.userAgent);
+              }
+              // Ensure new dimensions do not exceed max texture size
+              if (newWidth > maxTextureSize || newHeight > maxTextureSize) {
+                const aspectRatio = width / height;
+                if (newWidth > newHeight) {
+                  newWidth = maxTextureSize;
+                  newHeight = newWidth / aspectRatio;
+                } else {
+                  newHeight = maxTextureSize;
+                  newWidth = newHeight * aspectRatio;
+                }
+
+                // Make sure the new dimensions respect the 2:1 ratio and are powers of 2
+                newWidth = getPowerOfTwo(newWidth, maxTextureSize);
+                newHeight = newWidth / 2;
+              }
+
+              const canvas = document.createElement('canvas');
+              canvas.width = newWidth;
+              canvas.height = newHeight;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(image, 0, 0, newWidth, newHeight);
+
+              // Adjust quality based on the maxTextureSize
+              const quality = getQualityBasedOnTextureSize(maxTextureSize);
+              canvas.toBlob((blob) => {
+                compressedUrl = URL.createObjectURL(blob);
+                console.log('Compressed Image URL:', compressedUrl, 'compress quality', );
+                img.src = compressedUrl;
+              }, 'image/jpeg', quality);
+            };
+
+            image.onerror = () => {
+              console.error('Failed to load image');
+            };
+          }
+
+          function getPowerOfTwo(value, max) {
+            let power = 1;
+            while (power * 2 <= value && power * 2 <= max) {
+              power *= 2;
+            }
+            return power;
+          }
+
+          function getQualityBasedOnTextureSize(maxTextureSize) {
+            if (maxTextureSize >= 4096) {
+              return 1.0; // High quality
+            } else if (maxTextureSize >= 2048) {
+              return 0.8; // Medium-high quality
+            } else if (maxTextureSize >= 1024) {
+              return 0.6; // Medium quality
+            } else {
+              return 0.4; // Low quality
+            }
+          }
+          img.setAttribute('crossorigin', 'anonymous');
+          img.setAttribute('style', 'display: none');
+          var imgTexture = Viewer.createTextureFromHtmlImage(img);
+          mat.baseColorTexture = imgTexture;
+
+          Viewer.requestFrame();
+        }
+
+      }
+
+      function offsetTexture() {
+        var mat = Viewer.findMaterial('enviornment sphere');
+        if (mat) {
+          mat.setUvOffsetAndScale(0.6, 0, 1, 1);
+        }
+
+      }
+
+      Viewer.onSceneReadyToDisplay(function () {
+        changeTexture(url, 'enviornment sphere');
+        offsetTexture();
+        window.setInterval(rotatePointer, 1500);
+        parent.postMessage(JSON.stringify({ showMenu: true, from: "apartment" }), "*")
+      });
+      Viewer.onViewSwitchDone((a, b) => {
+        parent.postMessage(JSON.stringify({ cameraMode: b.mode }), "*")
+        cameraMode = b.mode;
+      })
+
+      Viewer.onSceneLoadComplete(function (a, b) {
+        Viewer.disableMinimap();
+        const data = JSON.stringify({ cameraMode: 'orbit' })
+        parent.postMessage(data, "*")
+      });
+
+      function rotatePointer() {
+        var rotation = Viewer.getCameraRotation();
+        parent.postMessage(JSON.stringify({ deg: rotation.yawDeg - 90 }), "*")
+
+      }
+
+      window.addEventListener("message", receiveMsg, false);
+      function receiveMsg(e) {
+        if (e.origin === "https://3d.virtualhomes.in" || "https://dev.3d.virtualhomes.in" || "https://virtualhomes.in") {
+          const data = JSON.parse(e.data);
+          console.log(data);
+          const unitType = document.getElementById('unitnounittype').innerHTML = `Creating a Virtual Experience of ${data?.buildingName} - ${data?.unitNumber} ( ${data?.unitType} )`
+          const unitDetails = document.getElementById('unitotherdetails').innerHTML = `You are viewing this unit during Day Time, in it's Furnished state <br> <br> Disclaimer - The external 'views' shown in this virtual experience, are an approximate recreation of ${data?.buildingName} - ${data?.unitNumber}'s real world location. Kindly verify the accuracy of the views, by connecting with an authorized representative.`
+          if (data.msg === 'mounted') {
+            url = data.url
+            console.log(url);
+
+          } else if (data.msg === 'Take me to') {
+            Viewer.switchToView(data.room);
+          } else if (data.msg === 'loadingScreen') {
+            const unitType = document.getElementById('bg').innerHTML = `Constructing 3D Model of ${data?.unitNumber}`
+          } else if (data.msg === '3D mode') {
+            Viewer.switchToView('Top');
+
+          } else if (data.msg === 'Change Flooring') {
+
+            changeTexture(data.url, 'Flooring Material');
+
+          } else if (data.msg === 'Change Wall Colour') {
+
+            changeTexture(data.url, 'Wall Fabric Texture');
+
+          } else if (data.msg === 'Enter VR Mode') {
+            vrBtn.click();
+          } else if (data?.msg === 'toggleAutoTour') {
+            isAutoTourEnabled = !isAutoTourEnabled;
+            document.getElementById("tour-button").click();
+          } else if (data.msg === "getCameraPosition") {
+            let cameraPosition = Viewer.getCameraPosition()
+            let rotation = Viewer.getCameraRotation();
+            parent.postMessage(JSON.stringify({ cameraPosition: cameraPosition, rotation: { yaw: rotation.yawDeg, pitch: rotation.pitchDeg } }), "*")
+          } else if (data.msg === 'screenshot') {
+            Viewer.captureImage({
+              isPanorama: false,
+              toDataUrl: false,
+              width: undefined,
+              height: undefined
+            });
+          } else if (data.msg === "Minimap") {
+            //document.getElementById("minimap-button-toggle").click();
+            if (Viewer.isMinimapEnabled()) {
+              Viewer.disableMinimap();
+            } else {
+              Viewer.enableMinimap();
+            }
+          }
+        }
+      }
+    };
+
+  </script>
+
+  <script type="text/javascript">
+
+    function removeImg() {
+      document.getElementById('FPSHelp').style.display = "none";
+      window.removeEventListener('keydown', removeImg, true);
+      window.removeEventListener('scroll', removeImg, true);
+      window.removeEventListener('touchstart', function () { }, true);
+      window.removeEventListener('touchmove', function () { }, true);
+      window.removeEventListener('touchend', function () { }, true);
+      window.removeEventListener('mousedown', function () { }, true);
+      window.removeEventListener('mousemove', function () { }, true);
+      window.removeEventListener('mouseup', function () { }, true);
+    }
+
+    function inactivityTime() {
+      var timer;
+      var isDragging = false;
+      function bindListener() {
+        window.addEventListener('click', resetTime, true);
+        window.addEventListener('touchend', resetTime, true);
+        window.addEventListener('keydown', resetTime, true);
+        window.addEventListener('scroll', resetTime, true);
+      }
+
+      function unBindListener() {
+        window.removeEventListener('click', resetTime, true);
+        window.removeEventListener('touchend', resetTime, true);
+        window.removeEventListener('keydown', resetTime, true);
+        window.removeEventListener('scroll', resetTime, true);
+      }
+
+      function bindHelpListener() {
+        window.addEventListener('keydown', removeImg, true);
+        window.addEventListener('scroll', removeImg, true);
+        window.addEventListener('touchstart', function () {
+          isDragging = false;
+        });
+
+        window.addEventListener('touchmove', function () {
+          isDragging = true;
+        });
+
+        window.addEventListener('touchend', function () {
+          if (!isDragging) {
+            isDragging = false;
+            removeImg();
+          }
+        });
+
+        window.addEventListener('mousedown', function () {
+          isDragging = false;
+        });
+        window.addEventListener('mousemove', function () {
+          isDragging = true;
+        });
+        window.addEventListener('mouseup', function () {
+          if (!isDragging) {
+            isDragging = false;
+            removeImg();
+          }
+        });
+        document.getElementById('FPSHelp').style.display = "flex";
+      }
+
+
+
+      function alertUser() {
+        unBindListener();
+        clearTimeout(timer);
+        bindHelpListener();
+      }
+
+      function resetTime() {
+        if (!timer) {
+          timer = setTimeout(alertUser, 1000 * 10);
+          return;
+        }
+        unBindListener();
+        clearTimeout(timer);
+      }
+
+      bindListener();
+      resetTime();
+    };
+
+    WALK.getViewer().onViewSwitchDone(function (viewName, view) {
+      parent.postMessage(JSON.stringify({ cameraMode: view.mode }), "*")
+      if (view.mode === 'orbit') {
+        removeImg();
+      }
+      if (view.mode === 'fps') {
+
+        if (sessionStorage.getItem('fps')) {
+          return
+        };
+        inactivityTime();
+        sessionStorage.setItem('fps', 'true');
+      }
+    });
+  </script>
+
+  <!--VirtualHomes CTC Ends here-->
+</body>
+
+</html>
