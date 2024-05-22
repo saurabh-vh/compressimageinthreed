@@ -879,9 +879,6 @@
               // Calculate the new dimensions
               let newWidth = getPowerOfTwo(width / 2, maxTextureSize);
               let newHeight = newWidth / 2;
-              function isAndroid() {
-                return /Android/i.test(navigator.userAgent);
-              }
               // Ensure new dimensions do not exceed max texture size
               if (newWidth > maxTextureSize || newHeight > maxTextureSize) {
                 const aspectRatio = width / height;
